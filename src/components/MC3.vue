@@ -1,6 +1,6 @@
 <template>
   <div v-if="childDataLoaded">
-  <Network :linksArray="linksArray" :nodesArray="nodesArray"></Network>
+    <Network :linksArray="linksArray" :nodesArray="nodesArray"></Network>
   </div>
 </template>
 
@@ -17,42 +17,64 @@ export default {
   data () {
     return {
       childDataLoaded: false,
-      eType: '',
-      source: '',
-      target: '',
-      date: '',
       linksArray: [],
       nodesArray: [],
       nodes: {
         id: null,
-        group: null
+        first: null,
+        last: null,
+        value: null,
+        nameSurname: null,
+        suspectDegree: null
+
       },
       links: {
         source: null,
-        target: null
+        target: null,
+        Etype: null,
+        Time: null,
+        nameSurnameDest: null,
+        nameSurnameSource: null,
+        suspectDegreeDest: null,
+        suspectDegreeSource: null,
+        suspectAction: null
       }
     }
   },
   mounted () {
-    fetch('/static/data/onlySusp.json')
+    fetch('/static/data/dataFinal.json')
       .then(res => res.json())
       .then((res) => {
-        const node = res.nodes.map((d) => {
+        const node = res.Nodes.map((d) => {
           const n = {
-            id: d.id,
-            group: d.group
+            id: +d.ID,
+            first: d.first,
+            last: d.last,
+            suspectDegree: +d.suspectDegree,
+            nameSurname: d.nameSurname
+
           }
           return n
         })
-        const link = res.links.map((d) => {
+        const link = res.Link.map((d) => {
           const n = {
-            source: d.source,
-            target: d.target
+            source: +d.Source,
+            target: +d.Dest,
+            Etype: +d.Etype,
+            Time: +d.Time,
+            nameSurnameDest: d.nameSurnameDest,
+            nameSurnameSource: d.nameSurnameSource,
+            suspectDegreeDest: +d.suspectDegreeDest,
+            suspectDegreeSource: +d.suspectDegreeSource,
+            suspectAction: d.suspectAction
+
           }
           return n
         })
         this.linksArray = link
         this.nodesArray = node
+        console.log(node)
+        console.log(link)
         this.childDataLoaded = true
       })
   }

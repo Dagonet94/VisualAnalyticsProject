@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <MC2></MC2>
+    <MC3></MC3>
   </div>
 </template>
 
