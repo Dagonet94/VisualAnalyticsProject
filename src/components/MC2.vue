@@ -43,7 +43,7 @@ import InteractiveDashboard from '@/components/InteractiveDashboard'
     mounted () {
       // let measure
       let parseTime = d3.timeParse('%Y-%m-%d')
-      fetch('/static/data/d3Definitivo.json')
+      fetch('/static/data/d3DefinitivoSoluzioni.json')
         .then(res => res.json())
         .then((res) => {
           const measure = res.map((d) => {
@@ -51,8 +51,7 @@ import InteractiveDashboard from '@/components/InteractiveDashboard'
               location: d.location,
               measure: d.measure,
               value: +d.value,
-              sampleDate: parseTime(d.sampleDate),
-              year: +d.sampleDate.split('-')[0]
+              sampleDate: parseTime(d.sampleDate)
             }
             return r
           })

@@ -17,25 +17,25 @@
         </div>
       </div>
       <div id="menu">
-      <button b-tooltip.hover title="The history mode allows you to view in sequence all the data available for a specific measurement" class="storyButton" v-on:click='visible=true; storyModeButton = true; storyMode()' id="play">Play story mode</button>
-        <button  class="storyButton" v-if="visible"  v-on:click='storyModeButton=false' id="pause">Pause story mode</button>
+      <button b-tooltip.hover title="The history mode allows you to view in sequence all the data available for a specific measurement" class="storyButton" v-if="visiblePlay" v-on:click='visible=true; visiblePlay=false; visibleSlide=false; pausePause=true; storyModeButton = true; storyMode()' id="play">Play story mode</button>
+        <button  class="storyButton" v-if="visible & pausePause"  v-on:click='pausePause=true; storyModeButton=false; visiblePlay=true; visibleSlide=true; ' id="pause">Pause story mode</button>
         <div id="focusData" v-if="showFocusData===true">
         <label >Focus on relevant data</label>
-        <input type="checkbox" v-model="storymodeInfo">
+        <input type="checkbox" v-model="storymodeInfo" v-on:click="showLocation=!showLocation">
       </div>
         <!-- eslint-disable -->
-      <select v-model="location" id="locationDiv"  class="style-chooser" placeholder="Location" v-on:change="storyModeButton=false; selectorActive=true">
+      <select v-if="showLocation" v-model="location" id="locationDiv"  class="style-chooser" placeholder="Location" v-on:change="storyModeButton=false; selectorActive=true">
         <option v-for='locations in sinLocation'>{{locations}}</option>
       </select>
-      <select v-model="measure"  class="style-chooser"
+      <select v-if="showLocation" v-model="measure"  class="style-chooser"
               placeholder="Measure"
               :options="['Components', 'CSS / Variables', 'Slots']">
         <option v-for='measures in sinMeasure' onclick="storyModeButton=false">{{measures}}</option>
         <!-- eslint-enable -->
       </select>
-        <button v-if="visible" class="storyButton" id="restart" v-on:click="storyModeButton=false; restart=true;">Restart story mode</button>
-        <button v-if="visible"  class="storyButton" id="AddSlide" v-on:click="storyModeButton=false; addSlide=true">Add one slide</button>
-        <button v-if="visible" class="storyButton" id="subtractSlide" v-on:click="storyModeButton=false; subtractSlide=true">Subtract one slide</button>
+        <button v-if="visible" class="storyButton" id="restart" v-on:click="storyModeButton=false; pausePause=true;  restart=true; visiblePlay=true; visibleSlide=false">Restart story mode</button>
+        <button v-if="visible & visibleSlide & checkShowFocusData"  class="storyButton" id="AddSlide" v-on:click="storyModeButton=false; addSlide=true">Add one slide</button>
+        <button v-if="visible & visibleSlide & checkShowFocusData" class="storyButton" id="subtractSlide" v-on:click="storyModeButton=false; subtractSlide=true">Subtract one slide</button>
 
       </div>
     </div>
@@ -44,8 +44,8 @@
       <div id="info">
         <!-- eslint-disable -->
         <div id="infoText" v-for='texts in textArray' v-if="texts.measure===measure && storymodeInfo===false"><h3>{{texts.measure}}</h3> {{texts.text}}</div>
-        <div id="infoTextstory" v-for='texts in textArrayStory' v-if="texts.location===location && storymodeInfo===true" ><h3>{{texts.location}}</h3> {{texts.text}}</div>
-        <div id="infoLink">Usefull link: <br>
+        <div id="infoTextstory" v-for='texts in textArrayStory' v-if="texts.location===location && storymodeInfo===true" ><h3>{{texts.title}}</h3> {{texts.text}}</div>
+        <div id="infoLink" v-if="showLocation">Usefull link: <br>
           <a v-for='texts in textArray' v-if="texts.measure===measure" href='texts.link'>{{texts.link}}</a></div>
       </div>
     </div>
@@ -90,6 +90,8 @@ let measureReset= 'Water temperature'
     name: 'MC2LineChart',
     data () {
       return {
+        visibleSlide: false,
+        visiblePlay: true,
         showFocusData: true,
         storymodeInfo: false,
         visible: false,
@@ -99,14 +101,26 @@ let measureReset= 'Water temperature'
         slide: 0,
         linkDisplay: null,
         selectorActive: false,
-        textArrayStory: [{
-          'location': 'Boonsri',
-          'text': 'A temperature expresses hot and cold, as measured with a thermometer. In physics, hotness is a body \' s ability to impart energy as heat to another body that is colder.\n' +
-            'In a body in which there are processes of chemical reaction and flow of matter, temperature may vary over its parts, and over time, as measured by a suitably small and rapidly responding thermometer, and may depend also on the match of the processes to the characteristics of the thermometer.\n' +
-            'There are various temperature scales that nearly or approximately agree with one another, but differ slightly because of the various ch'},
-          {'location': 'Kannika',
-          'text': 'ture scales that nearly or approximately agree with one another, but differ slightly because of the various ch',
-        }],
+        checkShowFocusData: true,
+        pausePause: true,
+        showLocation: true,
+        textArrayStory: [
+          {'title': 'Molecola x',
+            'location': 'Boonsri',
+          'text': 'Poca roba'},
+          {'title': 'Tante senza dati',
+            'location': 'Kannika',
+            'text': 'Poca roba'},
+          {'title': 'Chai',
+            'location': 'Chai',
+            'text': 'Picchetto e plateau'},
+          {'title': 'Kohsoom',
+            'location': 'Kohsoom',
+            'text': 'Picco violento'},
+          {'title': 'Somchair',
+            'location': 'Somchair',
+            'text': 'Picco violento e plateau'},
+        ],
         textArray: [{
           'measure': 'Water temperature',
           'text': 'A temperature expresses hot and cold, as measured with a thermometer. In physics, hotness is a body \' s ability to impart energy as heat to another body that is colder.\n' +
@@ -122,7 +136,7 @@ let measureReset= 'Water temperature'
           },
           {
             'measure': 'emergencyText',
-            'text': 'All work and no data makes Jack a dull boy...  All work and no data makes Jack a dull boy...  All work and no data makes Jack a dull boy...  All work and no data makes Jack a dull boy...  All work and no data makes Jack a dull boy...  All work and no data makes Jack a dull boy...  ',
+            'text': 'No data to show for this parameters. Change settings and keep exploring',
             'link': 'All work and no data makes Jack a dull boy...'
           }],
         storyModeButton: false,
@@ -134,6 +148,7 @@ let measureReset= 'Water temperature'
         dataArray: this.readyArray,
         dataFilteredArray: [],
         sinLocation: this.singleLocation,
+        storymodeLocation: ['Boonsri', 'Kannika', 'Chai', 'Kohsoom', 'Somchair'],
         sinMeasure: this.singleMeasure,
         location: 'Boonsri',
         measure: 'Water temperature'
@@ -282,8 +297,9 @@ let measureReset= 'Water temperature'
            array = this.sinLocation.slice(this.slide)
           console.log(array.length)
         } else {
-          this.measure= 'Dissolved oxygen'
-          array = this.sinLocation.slice(this.slide)
+          this.checkShowFocusData=false
+          this.measure= 'Methylosmoline'
+          array = this.storymodeLocation
           console.log(array.length)
         }
           const it = array[Symbol.iterator]() // convenient for yeilding values
@@ -304,6 +320,7 @@ let measureReset= 'Water temperature'
                 this.slide = 0
                 this.visible = false
                 this.showFocusData=true
+                this.checkShowFocusData=true
                 clearInterval(int)
               }
               if (this.selectorActive === true) {
@@ -366,10 +383,6 @@ let measureReset= 'Water temperature'
         if (tempArray.length > 0) {
           this.update()
         } else {
-          svg.append('image')
-            .attr('xlink:href', 'static/Data/datiMancanti.jpg')
-            .attr('width', 800)
-            .attr('height', 600)
           this.measure = 'emergencyText'
         }
       },
@@ -392,10 +405,6 @@ let measureReset= 'Water temperature'
         if (tempArray.length > 0) {
           this.update()
         } else {
-          svg.append('image')
-            .attr('xlink:href', 'static/Data/datiMancanti.jpg')
-            .attr('width', 800)
-            .attr('height', 500)
           this.measure = 'emergencyText'
 
         }
@@ -419,10 +428,6 @@ let measureReset= 'Water temperature'
         if (tempArray.length > 0) {
           this.update()
         } else {
-          svg.append('image')
-            .attr('xlink:href', 'static/Data/datiMancanti.jpg')
-            .attr('width', 800)
-            .attr('height', 500)
           this.measure = 'emergencyText'
           // eslint-disable-next-line eqeqeq
         }
