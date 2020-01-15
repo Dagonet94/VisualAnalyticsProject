@@ -36,7 +36,8 @@ import InteractiveDashboard from '@/components/InteractiveDashboard'
         location: null,
         value: null,
         singleLocation: [],
-        singleMeasure: []
+        singleMeasure: [],
+        unit: null
       }
     },
 
@@ -48,8 +49,10 @@ import InteractiveDashboard from '@/components/InteractiveDashboard'
         .then((res) => {
           const measure = res.map((d) => {
             const r = {
+
               location: d.location,
               measure: d.measure,
+              unit: d.unit,
               value: +d.value,
               sampleDate: parseTime(d.sampleDate)
             }
