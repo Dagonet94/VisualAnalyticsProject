@@ -1,6 +1,6 @@
 <template>
   <div v-if="childDataLoaded">
-    <Fnetwork :linksArray="linksArray" :nodesArray="nodesArray"></Fnetwork>
+    <Network :linksArray="linksArray" :nodesArray="nodesArray"></Network>
   </div>
 </template>
 
