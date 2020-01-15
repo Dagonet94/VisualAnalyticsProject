@@ -2,7 +2,8 @@
   <b-container>
     <b-row>
       <b-col class="12">
-        <div id="yearlyHeatMap">
+        <div class="graphTitle" id="titleHeatMap">Heatmap of yearly measures by location</div>
+        <div class="graph" id="yearlyHeatMap">
           <strong>Year, Location: </strong>
           <span class="reset" style="display: none;">Selected : <span class="filter"></span></span>
           <button class="reset" v-on:click="resetYearlyHeatMap" style="display: none;">reset</button>
@@ -12,7 +13,8 @@
     </b-row>
     <b-row>
       <b-col class="6">
-        <div id="locChart">
+        <div class="graphTitle" id="titleLocChart">Location BarChart</div>
+        <div class="graph" id="locChart">
           <strong>Location: </strong>
           <span class="reset" style="display: none;">Selected : <span class="filter"></span></span>
           <button class="reset" v-on:click="resetlocChart" style="display: none;">reset</button>
@@ -20,7 +22,8 @@
         </div>
       </b-col>
       <b-col class="6">
-        <div id="measChart">
+        <div class="graphTitle" id="titleMeasChart">Measures BarChart</div>
+        <div class="graph" id="measChart">
           <strong>Measure: </strong>
           <span class="reset" style="display: none;">Selected : <span class="filter"></span></span>
           <button class="reset" v-on:click="resetMeasChart" style="display: none;">reset</button>
@@ -30,7 +33,8 @@
     </b-row>
     <b-row>
       <b-col class="12">
-        <div id="yearChart">
+        <div class="graphTitle" id="titleYearChart">Yearly BarChart</div>
+        <div class="graph" id="yearChart">
           <strong>Year: </strong>
           <span class="reset" style="display: none;">Selected : <span class="filter"></span></span>
           <button class="reset" v-on:click="resetYearChart" style="display: none;">reset</button>
@@ -131,16 +135,20 @@ export default {
         .barPadding(0.1)
         .outerPadding(0.05)
         .group(gYear)
+        .yAxis().tickFormat(d3.format('~s'))
       this.locChart = dc.rowChart('#locChart')
         .dimension(dLocation)
         .group(gLocation)
         .elasticX(true)
+        .xAxis().tickFormat(d3.format('~s'))
       this.measChart = dc.rowChart('#measChart')
         .dimension(dMeasure)
         .group(gMeasure)
         .data((group) => { return group.top(10) })
         .elasticX(true)
+        .xAxis().tickFormat(d3.format('~s'))
       this.yearlyHeatMap = dc.heatMap('#yearlyHeatMap')
+        .width(1050)
         .dimension(heatDim)
         .group(heatGroup)
         .keyAccessor(function (d) { return d.key[0] })
@@ -407,4 +415,20 @@ export default {
   .dc-html-legend-container {
     height: inherit; }
 
+  .graph {
+    box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+    margin-bottom: 30px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    size: auto}
+  .graphTitle {
+    color: white;
+    margin-top: 30px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: #17a2b8;
+  }
+  svg {
+    overflow: visible;
+  }
 </style>
