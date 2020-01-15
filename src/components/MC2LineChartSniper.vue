@@ -95,6 +95,7 @@ let legend
     name: 'MC2LineChartSniper',
     data () {
       return {
+        unit: 'C',
         colorArray:[{'location':'Boonsri', 'color': 'purple'}, {'location':'Kannika', 'color': 'red'}, {'location':'Chai', 'color': 'blue'}, {'location':'Kohsoom', 'color': 'yellow'}, {'location':'Somchair', 'color': '#089514'}, {'location':'Sakda', 'color':'#43cbd5'}, {'location':'Busarakhan', 'color': '#c8c86a'}, {'location':'Tansanee', 'color': '#8d6695'}, {'location':'Achara', 'color': '#525c95'}, {'location':'Decha', 'color':'#95911c'}],
         isActiveBoonsri: true,
         isActiveKannika: false,
@@ -177,7 +178,7 @@ let legend
         .attr('x', -170)
         .attr('font-size', '20px')
         .attr('text-anchor', 'middle')
-        .text('Price (USD)')
+        .text(this.measure)
 
       x = d3.scaleTime()
         .range([0, width])
@@ -247,7 +248,7 @@ let legend
         xAxisCall.scale(x)
         xAxis.transition(this.transition()).call(xAxisCall)
         yAxisCall.scale(y)
-        yAxis.transition(this.transition()).call(yAxisCall)
+        yAxis.transition(this.transition()).call(yAxisCall.tickFormat(d=>d + this.unit))
 
         line = d3.line()
           .x(function (d) {
@@ -283,7 +284,7 @@ let legend
         xAxisCall.scale(x)
         xAxis.transition(this.transition()).call(xAxisCall)
         yAxisCall.scale(y)
-        yAxis.transition(this.transition()).call(yAxisCall)
+        yAxis.transition(this.transition()).call(yAxisCall.tickFormat(d=>d + this.unit))
         for (let i = 0; i < multydataFilteredArray[[i]].length; i++) {
           // eslint-disable-next-line eqeqeq
           if (multydataFilteredArray[[i]].length != 0) {
@@ -358,6 +359,7 @@ let legend
           this.location = this.locationArray[m]
           for (let i = 0; i < this.dataArray.length; i++) {
             if ((this.dataArray[i].measure === this.measure) && (typeof this.dataArray[i].value === 'number')) {
+              this.unit=this.dataArray[i].unit
               scaleArray.push(this.dataArray[i])
               if ((this.dataArray[i].location === this.location) &&
                 (this.dataArray[i].sampleDate.getTime() >= this.sliderValue[0]) &&
@@ -369,6 +371,7 @@ let legend
           }
         }
         d3.selectAll('svg > *').remove()
+        console.log(this.unit)
 
         g = svg.append('g')
           .attr('transform', 'translate(' + margin.left +
@@ -388,7 +391,8 @@ let legend
           .attr('x', -170)
           .attr('font-size', '20px')
           .attr('text-anchor', 'middle')
-          .text('Price (USD)')
+          .text(this.measure)
+
 
         xAxisCall = d3.axisBottom().scale(x)
         // Append asse x
