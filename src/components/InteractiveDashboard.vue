@@ -27,6 +27,7 @@
           <strong>Measure: </strong>
           <span class="reset" style="display: none;">Selected : <span class="filter"></span></span>
           <button class="reset" v-on:click="resetMeasChart" style="display: none;">reset</button>
+          <button class="scroll" v-on:click="scrollChart">Scroll</button>
           <div class="clearfix"></div>
         </div>
       </b-col>
@@ -74,6 +75,8 @@ export default {
       measChart: [],
       yearlyHeatMap: [],
       locChart: [],
+      first: 0,
+      last: 10,
       year: {
         value: 'All'
       },
@@ -144,7 +147,7 @@ export default {
       this.measChart = dc.rowChart('#measChart')
         .dimension(dMeasure)
         .group(gMeasure)
-        .data((group) => { return group.top(10) })
+        .data((group) => { return group.top(50).slice(1, 11) })
         .elasticX(true)
       this.measChart.xAxis().tickFormat(d3.format('~s'))
       this.yearlyHeatMap = dc.heatMap('#yearlyHeatMap')
@@ -162,6 +165,23 @@ export default {
         .colors(['#ffffd9', '#edf8b1', '#c7e9b4', '#7fcdbb', '#41b6c4', '#1d91c0', '#225ea8', '#253494', '#081d58'])
         .calculateColorDomain()
       dc.renderAll()
+    },
+    scrollChart () {
+      if (this.last < 50) {
+        this.first = this.first + 10
+        this.last = this.last + 10
+        this.measChart.data((group) => {
+          return group.top(50).slice(this.first, this.last)
+        })
+        this.measChart.redraw()
+      } else {
+        this.first = 0
+        this.last = 10
+        this.measChart.data((group) => {
+          return group.top(50).slice(this.first, this.last)
+        })
+        this.measChart.redraw()
+      }
     }
   }
 }
