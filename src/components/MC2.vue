@@ -51,6 +51,7 @@ import InteractiveDashboard from '@/components/InteractiveDashboard'
               location: d.location,
               measure: d.measure,
               value: +d.value,
+              year: +d.sampleDate.split('-')[0],
               sampleDate: parseTime(d.sampleDate)
             }
             return r
