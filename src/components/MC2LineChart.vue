@@ -90,6 +90,7 @@ let measureReset= 'Water temperature'
     name: 'MC2LineChart',
     data () {
       return {
+        unit: 'C',
         visibleSlide: false,
         visiblePlay: true,
         showFocusData: true,
@@ -209,7 +210,7 @@ let measureReset= 'Water temperature'
         .attr('x', -170)
         .attr('font-size', '20px')
         .attr('text-anchor', 'middle')
-        .text('Price (USD)')
+        .text(this.measure)
 
       x = d3.scaleTime()
         .range([0, width])
@@ -238,6 +239,8 @@ let measureReset= 'Water temperature'
       // Append asse y
       yAxis = g.append('g')
         .attr('class', 'y axis')
+
+
 
       // Prima linea
       g.append('path')
@@ -271,7 +274,8 @@ let measureReset= 'Water temperature'
         xAxisCall.scale(x)
         xAxis.transition(this.transition()).call(xAxisCall)
         yAxisCall.scale(y)
-        yAxis.transition(this.transition()).call(yAxisCall)
+        yAxis.transition(this.transition()).call(yAxisCall.tickFormat(d=>d + this.unit))
+
 
         line = d3.line()
           .x(function (d) {
@@ -280,6 +284,9 @@ let measureReset= 'Water temperature'
           .y(function (d) {
             return y(d.value)
           })
+
+        yLabel.text(this.measure)
+
         g.select('.line')
           .transition(this.transition())
           .attr('d', line(this.dataFilteredArray))
@@ -379,6 +386,7 @@ let measureReset= 'Water temperature'
             }
           }
         }
+
         this.dataFilteredArray = tempArray
         if (tempArray.length > 0) {
           this.update()
@@ -401,6 +409,8 @@ let measureReset= 'Water temperature'
             }
           }
         }
+        console.log(tempArray[0].unit)
+        this.unit=tempArray[0].unit
         this.dataFilteredArray = tempArray
         if (tempArray.length > 0) {
           this.update()
