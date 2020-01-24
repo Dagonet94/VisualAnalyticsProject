@@ -1,6 +1,6 @@
 <template>
   <b-container>
-    <b-row>
+    <b-row style="width: fit-content">
       <b-col class="12">
         <div class="graphTitle" id="titleHeatMap">Heatmap of yearly measures by location</div>
         <div class="graph" id="yearlyHeatMap">
@@ -32,7 +32,7 @@
         </div>
       </b-col>
     </b-row>
-    <b-row>
+    <b-row style="width: fit-content; display: contents">
       <b-col class="12">
         <div class="graphTitle" id="titleYearChart">Yearly BarChart</div>
         <div class="graph" id="yearChart">
@@ -56,6 +56,7 @@ let cf // crossfilter instance
 // var numberFormat = d3.format('.2f')
 let dYear // dimension for Year
 let dLocation // dimension for RecordType
+// let dValue
 let dMeasure
 let heatDim
 let gLocation
@@ -93,11 +94,9 @@ export default {
   },
   mounted () {
     cf = crossfilter(this.data)
-    console.log(this.data)
-    console.log('ciao')
+    // dValue = cf.dimension(d => d.value)
     dLocation = cf.dimension(d => d.location)
     this.location.options = ['All'].concat(dLocation.group().reduceCount().all().map(v => v.key))
-    console.log(this.location.options)
     dMeasure = cf.dimension(d => d.measure)
     dYear = cf.dimension(d => d.year)
     this.year.options = ['All'].concat(dYear.group().reduceCount().all().map(v => v.key))
@@ -138,6 +137,7 @@ export default {
         .barPadding(0.1)
         .outerPadding(0.05)
         .group(gYear)
+      this.yearChart.elasticY(true)
       this.yearChart.yAxis().tickFormat(d3.format('~s'))
       this.locChart = dc.rowChart('#locChart')
         .dimension(dLocation)
@@ -162,7 +162,7 @@ export default {
             'Location:  ' + d.key[1] + '\n' +
             'Count: ' + (d.value)
         })
-        .colors(['#ffffd9', '#edf8b1', '#c7e9b4', '#7fcdbb', '#41b6c4', '#1d91c0', '#225ea8', '#253494', '#081d58'])
+        .colors(d3.schemeReds[8])
         .calculateColorDomain()
       dc.renderAll()
     },
@@ -434,7 +434,9 @@ export default {
 
   .dc-html-legend-container {
     height: inherit; }
-
+  .heatmap {
+    transform: translate(65px, 10px);
+  }
   .graph {
     box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
     margin-bottom: 30px;
@@ -450,5 +452,9 @@ export default {
   }
   svg {
     overflow: visible;
+  }
+  b-row {
+    display: contents;
+    width: fit-content;
   }
 </style>
