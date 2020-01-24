@@ -1,6 +1,10 @@
 <template>
   <div v-if="childDataLoaded">
-    <Network :linksArray="linksArray" :nodesArray="nodesArray"></Network>
+    <div style="margin-top: 30px">
+      <button v-on:click="component = 'MC3LineChart'" id="MC3LineChart">Company overview</button>
+      <button v-on:click="component = 'Network'" id="Network">Interactive Network</button>
+    </div>
+    <component v-bind:is='component' :linksArray="linksArray" :nodesArray="nodesArray"></component>
   </div>
 </template>
 
@@ -18,6 +22,7 @@ export default {
   },
   data () {
     return {
+      component: 'MC3LineChart',
       childDataLoaded: false,
       linksArray: [],
       nodesArray: [],
@@ -75,8 +80,6 @@ export default {
         })
         this.linksArray = link
         this.nodesArray = node
-        console.log(node)
-        console.log(link)
         this.childDataLoaded = true
       })
   }

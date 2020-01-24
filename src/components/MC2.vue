@@ -2,9 +2,8 @@
   <div v-if="childDataLoaded">
     <!--la proprietà che passi e come la chiami-->
     <div>
-    <button v-on:click="component = 'MC2LineChart'" id="MC2LineChart">Standard mode</button>
-    <button v-on:click="component = 'MC2LineChartSniper'" id="MC2LineChartSniper">Sniper mode</button>
-      <button v-on:click="component = 'InteractiveDashboard'" id="InteractiveDashboard">DASHBOARD</button>
+    <button v-on:click="component = 'MC2LineChartSniper'" id="MC2LineChartSniper">Line Chart</button>
+      <button v-on:click="component = 'InteractiveDashboard'" id="InteractiveDashboard">Dashboard</button>
     </div>
     <keep-alive>
       <component v-bind:is='component' :readyArray="readyArray" :singleLocation="singleLocation" :singleMeasure="singleMeasure"></component>
@@ -14,21 +13,20 @@
 
 <script>
 /* eslint-disable */
-  import MC2LineChart from '@/components/MC2LineChart'
   import MC2LineChartSniper from '@/components/MC2LineChartSniper'
 import InteractiveDashboard from '@/components/InteractiveDashboard'
+
 
   import * as d3 from 'd3'
   export default {
     name: 'MC2',
     components: {
-      'MC2LineChart': MC2LineChart,
       'MC2LineChartSniper': MC2LineChartSniper,
       'InteractiveDashboard': InteractiveDashboard
     },
     data () {
       return {
-        component: 'MC2LineChart',
+        component: 'InteractiveDashboard',
         childDataLoaded: false,
         readyArray: [],
         measure: null,

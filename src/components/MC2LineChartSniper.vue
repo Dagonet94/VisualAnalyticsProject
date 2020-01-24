@@ -1,597 +1,294 @@
 <template>
-  <div id="container">
-    <div id="dataSelection">
-      <div id="sliderWrapper">
-        <div id="sliderContainer">
-          <vue-slider
-            v-model="sliderValue"
-            :min="min"
-            :max="max"
-            :step="step"
-            :width=1000
-            :tooltip-formatter="formatter"
-            :tooltip= "'always'"
-            :lazy = "true"
-            :enable-cross= "false"
-          ></vue-slider>
-        </div>
-      </div>
-      <div id="selectionWrapper">
-        <div id="checkboxContainer">
-          <p>Location</p>
-          <!-- eslint-disable -->
-          <div id="checkboxLocation">
-            <label v-bind:class="[{ 'isActiveBoonsri': isActiveBoonsri }]">Boonsri</label>
-            <input @click="isActiveBoonsri = !isActiveBoonsri"type="checkbox" value="Boonsri" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveKannika': isActiveKannika }]" >Kannika</label>
-            <input @click="isActiveKannika = !isActiveKannika" type="checkbox" value="Kannika" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveChai': isActiveChai }]" >Chai</label>
-            <input @click="isActiveChai = !isActiveChai" type="checkbox" value="Chai" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveKohsoom': isActiveKohsoom }]">Kohsoom</label>
-            <input @click="isActiveKohsoom = !isActiveKohsoom" type="checkbox" value="Kohsoom" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveSomchair': isActiveSomchair }]">Somchair</label>
-            <input @click="isActiveSomchair = !isActiveSomchair" type="checkbox" value="Somchair" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveSakda': isActiveSakda }]">Sakda</label>
-            <input @click="isActiveSakda = !isActiveSakda" type="checkbox" value="Sakda" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveBusarakhan': isActiveBusarakhan }]">Busarakhan</label>
-            <input @click="isActiveBusarakhan = !isActiveBusarakhan" type="checkbox" value="Busarakhan" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveTansanee': isActiveTansanee }]">Tansanee</label>
-            <input @click="isActiveTansanee = !isActiveTansanee" type="checkbox" value="Tansanee" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveAchara': isActiveAchara }]">Achara</label>
-            <input @click="isActiveAchara = !isActiveAchara" type="checkbox" value="Achara" v-model="locationArray">
-            <label v-bind:class="[{ 'isActiveDecha': isActiveDecha }]">Decha</label>
-            <input @click="isActiveDecha = !isActiveDecha" type="checkbox" value="Decha" v-model="locationArray">
-          </div>
-        </div>
-        <div id="measureContainer">
-          <label>Measure</label>
-          <select v-model="measure">
-            <!-- eslint-disable -->
-            <option v-for='measures in sinMeasure'>{{measures}}</option>
-          </select>
-        </div>
-      </div>
+  <b-container>
+    <b-row>
+      <b-col class="12">
+    <div id="sliderContainer">
+      <vue-slider
+        v-model="sliderValue"
+        :min="min"
+        :max="max"
+        :step="step"
+        :width=1000
+        :tooltip-formatter="formatter"
+        :tooltip= "'always'"
+        :lazy = "true"
+        :enable-cross= "false"
+      ></vue-slider>
     </div>
-    <div class="col-md-12">
-      <div id="chart-area"></div>
-    </div>
-
-  </div>
+      </b-col>
+    </b-row>
+    <b-row>
+    <b-col class="12">
+      <div class="graphTitle">Interactive LineChart</div>
+      <div class="select">
+        <select v-on:change="change" id="selectButton"></select>
+        <select v-on:change="change" id="selectButtonLoc"></select>
+      </div>
+      <div class="graph" id="lineChart"></div>
+    </b-col>
+    </b-row>
+  </b-container>
 </template>
 
 <script>
-/* eslint-disable */
-  import VueSlider from 'vue-slider-component'
-  import Vue from 'vue'
-  import * as d3 from 'd3'
-  import 'vue-slider-component/theme/default.css'
-  //import legend from 'd3-svg-legend'
-  // import jQuery from 'jQuery'
-  Vue.component('VueSlider', VueSlider)
-  // eslint-disable-next-line
-let legend
-  let timeArray
-  let tempArray = []
-  let scaleArray = []
-  let line
-  let svg
-  let x
-  let y
-  let margin = { left: 80, right: 100, top: 50, bottom: 100 }
-  let height = 500 - margin.top - margin.bottom
-  let width = 800 - margin.left - margin.right
-  let yAxis
-  let xAxis
-  let g
-  let xLabel
-  let yLabel
-  let xAxisCall
-  let yAxisCall
-  let multydataFilteredArray = [[], [], [], [], [], [], [], [], [], []]
-  let parseTime = d3.timeParse('%Y-%m-%d')
-  let formatTime = d3.timeFormat('%d/%m/%Y')
+import * as d3 from 'd3'
+import * as smooth from 'array-smooth'
+let margin = {top: 10, right: 30, bottom: 30, left: 60}
+let width = 580 - margin.left - margin.right
+let height = 520 - margin.top - margin.bottom
+let selectedGroup = null
+let selectedLoc = null
+let x = null
+let y = null
+let xAxis = null
+let yAxis = null
+let myColor = null
+let svg = null
+let parseTime = d3.timeParse('%Y-%m-%d')
+let formatTime = d3.timeFormat('%d/%m/%Y')
 
-  export default {
-    name: 'MC2LineChartSniper',
-    data () {
-      return {
-        unit: 'C',
-        colorArray:[{'location':'Boonsri', 'color': 'purple'}, {'location':'Kannika', 'color': 'red'}, {'location':'Chai', 'color': 'blue'}, {'location':'Kohsoom', 'color': 'yellow'}, {'location':'Somchair', 'color': '#089514'}, {'location':'Sakda', 'color':'#43cbd5'}, {'location':'Busarakhan', 'color': '#c8c86a'}, {'location':'Tansanee', 'color': '#8d6695'}, {'location':'Achara', 'color': '#525c95'}, {'location':'Decha', 'color':'#95911c'}],
-        isActiveBoonsri: true,
-        isActiveKannika: false,
-        isActiveChai: false,
-        isActiveKohsoom:false,
-        isActiveSomchair:false,
-        isActiveSakda:false,
-        isActiveBusarakhan:false,
-        isActiveTansanee:false,
-        isActiveAchara:false,
-        isActiveDecha: false,
-        formatter: v => `${formatTime((new Date(v)))}`,
-        max: parseTime('2016-12-31').getTime(),
-        min: parseTime('1998-01-11').getTime(),
-        step: 86400000, // One day
-        sliderValue: [parseTime('1998-01-11').getTime(), parseTime('2016-12-31').getTime()],
-        locations: null,
-        locationArray: ['Boonsri'],
-        measureArray: ['Water temperature'],
-        dataArray: this.readyArray,
-        dataFilteredArray: [],
-        sinLocation: this.singleLocation,
-        sinMeasure: this.singleMeasure,
-        location: 'Boonsri',
-        measure: 'Water temperature'
-        // maxDate: parseTime('1998-01-11').start(),
-      }
-    },
-    components: {
-      VueSlider
-    },
-    props: {
-      readyArray: {
-        type: Array,
-        require: true
-      },
-      singleLocation: {
-        type: Array,
-        require: true
-      },
-      singleMeasure: {
-        type: Array,
-        require: true
-      }
-    },
-
-    mounted () {
-      tempArray = []
-      scaleArray = []
-      for (let i = 0; i < this.dataArray.length; i++) {
-        if ((this.dataArray[i].measure === this.measure) && (typeof this.dataArray[i].value === 'number')) {
-          scaleArray.push(this.dataArray[i])
-          if (this.dataArray[i].location === this.location) {
-            tempArray.push(this.dataArray[i])
-          }
-        }
-      }
-      this.dataFilteredArray = tempArray
-
-      svg = d3.select('#chart-area')
-        .append('svg')
-        .attr('width', width + margin.left + margin.right)
-        .attr('height', height + margin.top + margin.bottom)
-
-      g = svg.append('g')
-        .attr('transform', 'translate(' + margin.left +
-          ', ' + margin.top + ')')
-
-      xLabel = g.append('text')
-        .attr('class', 'x axisLabel')
-        .attr('y', height + 50)
-        .attr('x', width / 2)
-        .attr('font-size', '20px')
-        .attr('text-anchor', 'middle')
-        .text('Time')
-      yLabel = g.append('text')
+export default {
+  name: 'MC2LineChartSniper',
+  props: {
+    readyArray: Array
+  },
+  data () {
+    return {
+      sliderValue: [parseTime('1998-01-11').getTime(), parseTime('2016-12-31').getTime()],
+      formatter: v => `${formatTime((new Date(v)))}`,
+      dataArray: this.readyArray,
+      max: parseTime('2016-12-31').getTime(),
+      min: parseTime('1998-01-11').getTime(),
+      step: 86400000,
+      lineChart: null,
+      array: null,
+      temp: null
+    }
+  },
+  mounted () {
+    // let parseTime = d3.timeParse('%Y-%m-%d')
+    this.array = this.dataArray.sort(function (a, b) {
+      return new Date(a.sampleDate) - new Date(b.sampleDate)
+    })
+    let prova = []
+    this.array.forEach(function (d) {
+      prova.push(d.value)
+    })
+    this.temp = smooth(prova, 2)
+    let locGroup = d3.map(this.array, function (d) {
+      return (d.location)
+    }).keys()
+    let allGroup = d3.map(this.array, function (d) {
+      return (d.measure)
+    }).keys()
+    d3.select('#selectButtonLoc')
+      .selectAll('myOptions')
+      .data(locGroup)
+      .enter()
+      .append('option')
+      .text(function (d) {
+        return d
+      }) // text showed in the menu
+      .attr('value', function (d) {
+        return d
+      })
+    d3.select('#selectButton')
+      .selectAll('myOptions')
+      .data(allGroup)
+      .enter()
+      .append('option')
+      .text(function (d) {
+        return d
+      }) // text showed in the menu
+      .attr('value', function (d) {
+        return d
+      })
+    svg = d3.select('#lineChart')
+      .append('svg')
+      .attr('width', width + margin.left + margin.right)
+      .attr('height', height + margin.top + margin.bottom)
+      .append('g')
+      .attr('class', 'effect8')
+      .attr('transform',
+        'translate(' + margin.left + ',' + margin.top + ')')
+    x = d3.scaleTime()
+      .domain(d3.extent(this.dataArray, function (d) {
+        return d.sampleDate
+      }))
+      .range([0, width])
+    xAxis = d3.axisBottom(x)
+    svg.append('g')
+      .attr('transform', 'translate(0,' + height + ')')
+      .call(xAxis)
+      .attr('id', 'dateAx')
+    y = d3.scaleLinear()
+      .domain([0, d3.max(this.dataArray.filter(function (d) {
+        return (d.measure === allGroup[0] && d.location === locGroup[0])
+      }), function (d) {
+        return d.value
+      })])
+      .range([height, 0])
+    yAxis = d3.axisLeft(y)
+    svg.append('g')
+      .call(yAxis)
+      .attr('id', 'ciao')
+    d3.select('#ciao')
+      .append('text')
+      .attr('id', 'ylabel')
+      .attr('class', 'y axisLabel')
+      .attr('transform', 'rotate(-90)')
+      .attr('y', -60)
+      .attr('x', -170)
+      .attr('font-size', '20px')
+      .attr('text-anchor', 'middle')
+      .attr('fill', 'black')
+      .text(d3.select('#selectButton').property('value'))
+    myColor = d3.scaleOrdinal()
+      .domain(allGroup)
+      .range(d3.schemeSet2)
+    // Draw the line
+    this.line = svg
+      .append('g')
+      .append('path')
+      .datum(this.dataArray.filter(function (d) {
+        return (d.measure === allGroup[0] && d.location === locGroup[0])
+      }).sort(function (a, b) {
+        return new Date(a.sampleDate) - new Date(b.sampleDate)
+      }))
+      .attr('d', d3.line()
+        .x(function (d) {
+          return x(d.sampleDate)
+        })
+        .y(function (d) {
+          return y(d.value)
+        })
+      )
+      .attr('stroke', function (d) {
+        return myColor('Water Temperature')
+      })
+      .style('stroke-width', 1.5)
+      .style('fill', 'none')
+  },
+  updated () {
+  },
+  methods: {
+    change () {
+      let startDate = this.sliderValue[0]
+      let stopDate = this.sliderValue[1]
+      selectedGroup = d3.select('#selectButton').property('value')
+      selectedLoc = d3.select('#selectButtonLoc').property('value')
+      d3.select('#ylabel').remove()
+      d3.select('#ciao')
+        .append('text')
         .attr('class', 'y axisLabel')
+        .attr('id', 'ylabel')
         .attr('transform', 'rotate(-90)')
         .attr('y', -60)
         .attr('x', -170)
         .attr('font-size', '20px')
         .attr('text-anchor', 'middle')
-        .text(this.measure)
-
-      x = d3.scaleTime()
-        .range([0, width])
-        .domain(d3.extent(this.dataFilteredArray, function (d) {
-          return d.sampleDate
-        }))
-
-      y = d3.scaleLinear()
+        .attr('fill', 'black')
+        .text(selectedGroup)
+      let dataFilter = this.dataArray.filter(function (d) {
+        return (d.measure === selectedGroup && d.location === selectedLoc)
+      })
+      dataFilter = dataFilter.filter(function (d) {
+        return (d.sampleDate.getTime() > startDate && d.sampleDate.getTime() < stopDate)
+      })
+      y.domain(d3.extent(dataFilter, function (d) {
+        return d.value
+      }))
         .range([height, 0])
-        .domain([d3.min(scaleArray, function (d) {
-          return d.value
-        }),
-          d3.max(scaleArray, function (d) {
-            return d.value
-          })])
-
-      // Define the x axis
-      xAxisCall = d3.axisBottom().scale(x)
-      // Append asse x
-      xAxis = g.append('g')
-        .attr('class', 'x axis')
-        .attr('transform', 'translate(0,' + height + ')')
-
-      // define the yaxis
-      yAxisCall = d3.axisLeft().scale(y)
-      // Append asse y
-      yAxis = g.append('g')
-        .attr('class', 'y axis')
-
-      // Prima linea
-      g.append('path')
-        .attr('class', 'line')
-        .attr('fill', 'none')
-        .attr('stroke', 'grey')
-        .attr('stroke-width', '2px')
-        .attr('id', 'Boonsri')
-
-       legend= svg.append('g')
-        .attr('class', 'legend')
-        .attr('transform', 'translate('+ (width-100)+ ',' + 20 + ')')
-        .selectAll('g')
-        .data(['Test'])
-        .enter().append('g')
-
-      this.update()
-    },
-
-    methods: {
-      // metodo di update del grafico
-      update: function () {
-        x = d3.scaleTime()
-          .range([0, width])
-          .domain(d3.extent(this.dataFilteredArray, function (d) {
-            return d.sampleDate
-          }))
-
-        y = d3.scaleLinear()
-          .range([height, 0])
-          .domain([d3.min(scaleArray, function (d) {
-            return d.value
-          }),
-            d3.max(scaleArray, function (d) {
-              return d.value
-            })])
-
-        // domini delle scale
-        xAxisCall.scale(x)
-        xAxis.transition(this.transition()).call(xAxisCall)
-        yAxisCall.scale(y)
-        yAxis.transition(this.transition()).call(yAxisCall.tickFormat(d=>d + this.unit))
-
-        line = d3.line()
-          .x(function (d) {
-            return x(d.sampleDate)
-          })
-          .y(function (d) {
-            return y(d.value)
-          })
-        g.select('.line')
-          .transition(this.transition())
-          .attr('d', line(this.dataFilteredArray))
-          .attr('stroke', 'purple')
-
-      },
-
-      multyUpdate: function () {
-        x = d3.scaleTime()
-          .range([0, width])
-          .domain(d3.extent(timeArray, function (d) {
-            return d.sampleDate
-          }))
-
-        y = d3.scaleLinear()
-          .range([height, 0])
-          .domain([d3.min(scaleArray, function (d) {
-            return d.value
-          }),
-            d3.max(scaleArray, function (d) {
-              return d.value
-            })])
-
-        // domini delle scale
-        xAxisCall.scale(x)
-        xAxis.transition(this.transition()).call(xAxisCall)
-        yAxisCall.scale(y)
-        yAxis.transition(this.transition()).call(yAxisCall.tickFormat(d=>d + this.unit))
-        for (let i = 0; i < multydataFilteredArray[[i]].length; i++) {
-          // eslint-disable-next-line eqeqeq
-          if (multydataFilteredArray[[i]].length != 0) {
-            let dataArray = multydataFilteredArray[i]
-            let id = dataArray[0].location
-
-            let color
-            for (let l =0; l< this.colorArray.length; l++){
-              if(this.colorArray[l].location===id)
-              {
-                console.log(this.colorArray[l].color)
-                color= this.colorArray[l].color
-              }
-            }
-
-            line = d3.line()
-              .x(function (d) {
-                return x(d.sampleDate)
-              })
-              .y(function (d) {
-                return y(d.value)
-              })
-            g.append('path')
-              .attr('class', 'line')
-              .attr('id', id)
-              .attr('fill', 'none')
-              .attr('stroke', color)
-              .attr('stroke-width', '2px')
-              .attr('d', line(dataArray))
-          }
-        }
-      },
-
-      transition: function () {
-        return d3.transition().duration(1000)
-      }
-    },
-
-    watch: {
-      locationArray () {
-        tempArray = [[], [], [], [], [], [], [], [], [], []]
-        scaleArray = []
-        timeArray = []
-        for (let m = 0; m < this.locationArray.length; m++) {
-          this.location = this.locationArray[m]
-          for (let i = 0; i < this.dataArray.length; i++) {
-            if ((this.dataArray[i].measure === this.measure) && (typeof this.dataArray[i].value === 'number')) {
-              scaleArray.push(this.dataArray[i])
-              if ((this.dataArray[i].location === this.location) &&
-                (this.dataArray[i].sampleDate.getTime() >= this.sliderValue[0]) &&
-                (this.dataArray[i].sampleDate.getTime() <= this.sliderValue[1])) {
-                tempArray[[m]].push(this.dataArray[i])
-                timeArray.push(this.dataArray[i])
-              }
-            }
-          }
-        }
-        d3.selectAll('path.line').remove()
-        multydataFilteredArray = tempArray
-        if (tempArray.length > 0) {
-          this.multyUpdate()
-        } else {
-          window.alert('Non ci sono dati sufficienti per questa visualizzazione')
-        }
-      },
-
-      measure () {
-        tempArray = [[], [], [], [], [], [], [], [], [], []]
-        scaleArray = []
-        timeArray = []
-        for (let m = 0; m < this.locationArray.length; m++) {
-          this.location = this.locationArray[m]
-          for (let i = 0; i < this.dataArray.length; i++) {
-            if ((this.dataArray[i].measure === this.measure) && (typeof this.dataArray[i].value === 'number')) {
-              this.unit=this.dataArray[i].unit
-              scaleArray.push(this.dataArray[i])
-              if ((this.dataArray[i].location === this.location) &&
-                (this.dataArray[i].sampleDate.getTime() >= this.sliderValue[0]) &&
-                (this.dataArray[i].sampleDate.getTime() <= this.sliderValue[1])) {
-                tempArray[[m]].push(this.dataArray[i])
-                timeArray.push(this.dataArray[i])
-              }
-            }
-          }
-        }
-        d3.selectAll('svg > *').remove()
-        console.log(this.unit)
-
-        g = svg.append('g')
-          .attr('transform', 'translate(' + margin.left +
-            ', ' + margin.top + ')')
-
-        xLabel = g.append('text')
-          .attr('class', 'x axisLabel')
-          .attr('y', height + 50)
-          .attr('x', width / 2)
-          .attr('font-size', '20px')
-          .attr('text-anchor', 'middle')
-          .text('Time')
-        yLabel = g.append('text')
-          .attr('class', 'y axisLabel')
-          .attr('transform', 'rotate(-90)')
-          .attr('y', -60)
-          .attr('x', -170)
-          .attr('font-size', '20px')
-          .attr('text-anchor', 'middle')
-          .text(this.measure)
-
-
-        xAxisCall = d3.axisBottom().scale(x)
-        // Append asse x
-        xAxis = g.append('g')
-          .attr('class', 'x axis')
-          .attr('transform', 'translate(0,' + height + ')')
-
-        // define the yaxis
-        yAxisCall = d3.axisLeft().scale(y)
-        // Append asse y
-        yAxis = g.append('g')
-          .attr('class', 'y axis')
-
-        multydataFilteredArray = tempArray
-        this.multyUpdate()
-      },
-
-      sliderValue () {
-        tempArray = [[], [], [], [], [], [], [], [], [], []]
-        scaleArray = []
-        timeArray = []
-        for (let m = 0; m < this.locationArray.length; m++) {
-          this.location = this.locationArray[m]
-          for (let i = 0; i < this.dataArray.length; i++) {
-            if ((this.dataArray[i].measure === this.measure) && (this.dataArray[i].location === this.location)) {
-              scaleArray.push(this.dataArray[i])
-              if ((this.dataArray[i].location === this.location) &&
-                (this.dataArray[i].sampleDate.getTime() >= this.sliderValue[0]) &&
-                (this.dataArray[i].sampleDate.getTime() <= this.sliderValue[1])) {
-                tempArray[[m]].push(this.dataArray[i])
-                timeArray.push(this.dataArray[i])
-              }
-            }
-          }
-        }
-
-        multydataFilteredArray = tempArray
-
-        x = d3.scaleTime()
-          .range([0, width])
-          .domain(d3.extent(timeArray, function (d) {
-            return d.sampleDate
-          }))
-
-        y = d3.scaleLinear()
-          .range([height, 0])
-          .domain([d3.min(scaleArray, function (d) {
-            return d.value
-          }),
-            d3.max(scaleArray, function (d) {
-              return d.value
-            })])
-
-        // domini delle scale
-        xAxisCall.scale(x)
-        xAxis.transition(this.transition()).call(xAxisCall)
-        yAxisCall.scale(y)
-        yAxis.transition(this.transition()).call(yAxisCall)
-
-        for (let i = 0; i < multydataFilteredArray[[i]].length; i++) {
-          // eslint-disable-next-line eqeqeq
-          if (multydataFilteredArray[[i]].length != 0) {
-            let dataArray = multydataFilteredArray[i]
-            let id = dataArray[0].location
-
-            line = d3.line()
-              .x(function (d) {
-                return x(d.sampleDate)
-              })
-              .y(function (d) {
-                return y(d.value)
-              })
-            // domini delle scale
-
-            line = d3.line()
-              .x(function (d) { return x(d.sampleDate) })
-              .y(function (d) { return y(d.value) })
-            d3.select('#' + id)
-              .transition(this.transition())
-              .attr('d', line(dataArray))
-          }
-        }
-      }
+      x.domain(d3.extent(dataFilter, function (d) {
+        return d.sampleDate
+      }))
+        .range([0, width])
+      svg.select('#dateAx')
+        .transition()
+        .duration(1000)
+        .call(d3.axisBottom(x))
+      svg.select('#ciao')
+        .transition()
+        .duration(1000)
+        .call(d3.axisLeft(y))
+      this.line
+        .datum(dataFilter)
+        .transition()
+        .duration(1000)
+        .attr('d', d3.line()
+          .x(function (d) { return x(d.sampleDate) })
+          .y(function (d) { return y(d.value) })
+        )
+        .attr('stroke', function (d) { return myColor(selectedGroup) })
+    }
+  },
+  watch: {
+    sliderValue () {
+      this.change()
+      // this.createNetwork(returnList[0], returnList[1])
     }
   }
-
+}
+// Give these new data to update line
+/* this.line
+        .datum(dataFilter)
+        .transition()
+        .duration(1000)
+        .attr('d', d3.line()
+          .x(function (d) { return this.x(d.sampledate) })
+          .y(function (d) { return this.y(+d.value) })
+        )
+        .attr('stroke', function (d) { return this.myColor(selectedGroup) }) */
 </script>
 
 <style scoped>
-
-  #checkboxLocation{
-    float: left;
-    margin-right: 1%;
-    mask-border-repeat: repeat;
+  .effect8
+  {
+    position:relative;
+    -webkit-box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.1) inset;
+    -moz-box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.1) inset;
+    box-shadow:0 1px 4px rgba(0, 0, 0, 0.3), 0 0 40px rgba(0, 0, 0, 0.1) inset;
   }
-
-  #chart-area svg {
-    margin-left: auto;
-    margin-right: auto;
-    display: block;
+  .effect8:before, .effect8:after
+  {
+    content:"";
+    position:absolute;
+    z-index:-1;
+    -webkit-box-shadow:0 0 20px rgba(0,0,0,0.8);
+    -moz-box-shadow:0 0 20px rgba(0,0,0,0.8);
+    box-shadow:0 0 20px rgba(0,0,0,0.8);
+    top:10px;
+    bottom:10px;
+    left:0;
+    right:0;
+    -moz-border-radius:100px / 10px;
+    border-radius:100px / 10px;
   }
-
-  .isActiveBoonsri{
-    color: purple;
+  .effect8:after {
+    right: 10px;
+    left: auto;
+    -webkit-transform: skew(8deg) rotate(3deg);
+    -moz-transform: skew(8deg) rotate(3deg);
+    -ms-transform: skew(8deg) rotate(3deg);
+    -o-transform: skew(8deg) rotate(3deg);
+    transform: skew(8deg) rotate(3deg);
   }
-  .isActiveKannika{
-    color: red;
+  .graph {
+    box-shadow: 0 19px 38px rgba(0,0,0,0.30), 0 15px 12px rgba(0,0,0,0.22);
+    margin-bottom: 30px;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    size: auto}
+  .graphTitle {
+    color: white;
+    margin-top: 30px;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    background-color: #17a2b8;
   }
-  .isActiveChai{
-    color: blue;
-  }
-  .isActiveKohsoom{
-    color: yellow;
-  }
-  .isActiveSomchair{
-    color: #089514;
-  }
-  .isActiveSakda{ color: #43cbd5;}
-  .isActiveBusarakhan{ color: #c8c86a;}
-  .isActiveTansanee{ color: #8d6695;}
-  .isActiveAchara{ color: #525c95;}
-  .isActiveDecha{ color: #95911c;}
-
-
-  .axis {
-    font: 10px sans-serif;
-  }
-
-  .axis path,
-
-  .axis line {
-    fill: none;
-    stroke: #D4D8DA;
-    stroke-width: 2px;
-    shape-rendering: crispEdges;
-  }
-
-  #selections {
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-
-  #sliderWrapper{
-    text-align: center;
-  }
-
-  #selectionWrapper{
-    text-align: center;
-  }
-
-  #dataSelection{
+  .select {
+    background-color: #17a2b8;
 
   }
 
-  #container{
-    display: inline-block;
-    padding: 5px 5px;
-    border: 2px solid #aed6f1;
-    border-radius: 15px;
-    margin: auto;
-  }
-
-  #sliderContainer{
-    display: inline-block;
-    padding: 5px 5px;
-    border: 2px solid #aed6f1;
-    border-radius: 15px;
-    box-sizing: border-box;
-    padding: 12px;
-    max-width: 1028px;
-    margin: auto;
-  }
-
-  #checkboxContainer{
-    display: inline-block;
-    padding: 5px 5px;
-    border: 2px solid #aed6f1;
-    border-radius: 15px;
-    max-higth: 50%;
-  }
-
-  #measureContainer{
-    display: inline-block;
-    padding: 5px 5px;
-    border: 2px solid #aed6f1;
-    border-radius: 15px;
-  }
-
-  .active{
-    color: red;
-  }
-
-  #labelOne{
-    margin-right: 350px;
-  }
-
-  .line {
-    fill: none;
-    stroke-width: 3px;
-    stroke: grey;
-  }
 </style>

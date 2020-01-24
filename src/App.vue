@@ -30,7 +30,7 @@ export default {
   },
   data () {
     return {
-      comp: 'MC3'
+      comp: 'MC2'
     }
   }
 }

@@ -2,8 +2,9 @@
   <b-container>
     <b-row class="justify-content-md-center">
       <b-col>
-        <label> Solo azioni sospette</label>
+        <label>Only suspects</label>
         <input type="checkbox" v-model="suspectActionCheck">
+        <button class="susp" v-on:click="onlySuspNet">All suspects</button>
         <b-form-group v-if="visible===true" label="Select a suspect">
           <b-form-select
             v-model="value"
@@ -55,6 +56,7 @@ export default {
   },
   data () {
     return {
+      susp: false,
       max: 83319987 * 1000 + 1431698400000,
       min: 1095 * 1000 + 1431698400000,
       step: 86400000, // One day
@@ -87,7 +89,7 @@ export default {
       this.simulation = d3.forceSimulation()
         .force('center', d3.forceCenter(width, height))
         .force('charge', d3.forceManyBody().strength(-25))
-        .force('collide', d3.forceCollide(10).strength(0.9))
+        .force('collide', d3.forceCollide(5).strength(0.9))
         .force('link', d3.forceLink().id(function (node) {
           return node.id
         }))
@@ -178,18 +180,51 @@ export default {
       })
       return bool
     },
+    onlySuspNet () {
+      this.susp = true
+      let links = this.linksArray
+      let suspList = []
+      let suspLinks = []
+      let nodes = this.nodesArray
+      let startDate = this.sliderValue[0]
+      let stopDate = this.sliderValue[1]
+      links = links.filter(function (d) {
+        return (d.Time * 1000 + 1431698400000) > startDate && (d.Time * 1000 + 1431698400000) < stopDate
+      })
+      nodes.forEach(function (data) {
+        if (data.suspectDegree === 1) {
+          suspList.push(data)
+        }
+      })
+      links.forEach(function (link) {
+        suspList.forEach(function (susp) {
+          if (susp.id === (link.source.id ? link.source.id : link.source) || susp.id === (link.target.id ? link.target.id : link.target)) {
+            suspLinks.push(link)
+          }
+        })
+      })
+      let nodeFiltered = []
+      nodes.forEach(function (element) {
+        suspLinks.forEach(function (element2) {
+          if ((element2.source.id ? element2.source.id : element2.source) === element.id | (element2.target.id ? element2.target.id : element2.target) === element.id) {
+            nodeFiltered.push(element)
+          }
+        })
+      })
+      nodeFiltered = [...new Set(nodeFiltered)]
+      this.createNetwork(nodeFiltered, suspLinks)
+    },
     prova (d) {
       this.ciao = d.id
-      console.log(this.ciao)
       this.value = d.id
       returnList = this.updateData()
-      console.log(this.containsObject(d.id, this.options))
       if (!this.containsObject(d.id, this.options)) {
         d3.selectAll('select').append('option').text(d.nameSurname).attr('value', d.id).attr('class', 'toRemove')
       }
       this.createNetwork(returnList[0], returnList[1])
     },
     updateData: function () {
+      this.susp = false
       let linkFiltered = []
       let test = +this.value
       let listTemp = []
@@ -240,12 +275,9 @@ export default {
         })
       })
       nodeFiltered = [...new Set(nodeFiltered)]
-      console.log(linkFiltered)
       // time selection
       // tempArray = []
       // scaleArray = []
-
-      console.log(linkFiltered)
       returnList = [nodeFiltered, linkFiltered]
       return returnList
     },
@@ -274,8 +306,12 @@ export default {
       this.createNetwork(returnList[0], returnList[1])
     },
     sliderValue () {
-      returnList = this.updateData()
-      this.createNetwork(returnList[0], returnList[1])
+      if (this.susp === false) {
+        returnList = this.updateData()
+        this.createNetwork(returnList[0], returnList[1])
+      } else {
+        this.onlySuspNet()
+      }
     }
   }
 }

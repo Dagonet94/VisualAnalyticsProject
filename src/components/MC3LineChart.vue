@@ -12,6 +12,7 @@
 
 <script>
 import * as d3 from 'd3'
+import * as smooth from 'array-smooth'
 let margin = {top: 10, right: 30, bottom: 30, left: 60}
 let width = 580 - margin.left - margin.right
 let height = 520 - margin.top - margin.bottom
@@ -28,7 +29,8 @@ export default {
   data () {
     return {
       lineChart: null,
-      array: null
+      array: null,
+      temp: null
     }
   },
   mounted () {
@@ -47,7 +49,11 @@ export default {
         this.array = measure.sort(function (a, b) {
           return new Date(a.sampleDate) - new Date(b.sampleDate)
         })
-        console.log(measure)
+        let prova = []
+        measure.forEach(function (d) {
+          prova.push(d.value)
+        })
+        this.temp = smooth(prova, 2)
         let allGroup = d3.map(measure, function (d) {
           return (d.type)
         }).keys()
@@ -92,7 +98,6 @@ export default {
         myColor = d3.scaleOrdinal()
           .domain(allGroup)
           .range(d3.schemeSet2)
-        console.log(svg)
         // Draw the line
         this.line = svg
           .append('g')
@@ -122,7 +127,6 @@ export default {
   methods: {
     change () {
       selectedGroup = d3.select('#selectButton').property('value')
-      console.log(selectedGroup)
 
       let dataFilter = this.array.filter(function (d) {
         return d.type === selectedGroup
