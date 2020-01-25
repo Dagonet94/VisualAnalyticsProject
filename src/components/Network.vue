@@ -1,9 +1,9 @@
 <template>
   <b-container>
+    <div style="padding: 15px">An informant claims that some Kasios Office Furniture employees have formed a criminal organization that could be implicated with the area's environmental iusses. It is time to find out who is behind all this!
+    </div>
     <b-row class="justify-content-md-center">
       <b-col>
-        <label>Only suspects</label>
-        <input type="checkbox" v-model="suspectActionCheck">
         <button class="susp" v-on:click="onlySuspNet">All suspects</button>
         <b-form-group v-if="visible===true" label="Select a suspect">
           <b-form-select
@@ -29,7 +29,7 @@
     </b-row>
     <b-row>
       <b-col>
-        <svg width="1000" height="1000"></svg>
+        <svg width="1000" height="1500"></svg>
       </b-col>
     </b-row>
   </b-container>
@@ -62,7 +62,7 @@ export default {
       step: 86400000, // One day
       sliderValue: [1095 * 1000 + 1431698400000, 83319987 * 1000 + 1431698400000],
       formatter: v => `${formatTime((new Date(v)))}`,
-      suspectActionCheck: true,
+      suspectActionCheck: false,
       visible: true,
       simulation: null,
       nodes: this.nodesArray,
