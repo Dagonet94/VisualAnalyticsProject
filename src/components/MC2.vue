@@ -13,7 +13,7 @@
 
 <script>
 /* eslint-disable */
-  import MC2LineChartSniper from '@/components/MC2LineChartSniper'
+  import MC2LineChartSniper from '@/components/InteractiveLineChart'
 import InteractiveDashboard from '@/components/InteractiveDashboard'
 
 

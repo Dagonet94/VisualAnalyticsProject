@@ -9,7 +9,6 @@
 </template>
 
 <script>
-import ScatterPlot from '@/components/ScatterPlot'
 import Network from '@/components/Network'
 import MC3LineChart from '@/components/MC3LineChart'
 // import * as d3 from 'd3'
@@ -17,7 +16,6 @@ export default {
   name: 'MC3',
   components: {
     MC3LineChart,
-    ScatterPlot,
     Network
   },
   data () {
